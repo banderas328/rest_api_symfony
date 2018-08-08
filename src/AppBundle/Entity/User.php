@@ -141,7 +141,7 @@ class User
             'minMessage' => 'User first name must be at least {{ limit }} characters long',
             'maxMessage' => 'User first name cannot be longer than {{ limit }} characters',
         )));
-        $metadata->addPropertyConstraint('firstName', new Assert\Length(array(
+        $metadata->addPropertyConstraint('secondName', new Assert\Length(array(
             'min' => 2,
             'max' => 50,
             'minMessage' => 'User second name must be at least {{ limit }} characters long',
