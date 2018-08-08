@@ -1,4 +1,5 @@
 <?php
+
 namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -11,28 +12,28 @@ use FOS\RestBundle\View\View;
 use AppBundle\Entity\User;
 
 
-class UserController extends FOSRestController {
+class UserController extends FOSRestController
+{
     /**
-     * @Route("/user"))
+     * @Rest\Get("/user"))
      */
-    public function getAction()
+    public function getAction(Request $request)
     {
-        $restresult = $this->getDoctrine()->getRepository('AppBundle:User')->findAll();
-        if ($restresult === null) {
-            return new View("there are no users exist", Response::HTTP_NOT_FOUND);
-        }
-        return $restresult;
+        $limit = $request->get('limit');
+        $offset = $request->get('offset');
+        return $this->getDoctrine()->getRepository('AppBundle:User')->findBy(array(), null, $limit, $offset);
     }
+
     /**
      * @Rest\Get("/user/{id}")
      */
     public function idAction($id)
     {
-        $singleresult = $this->getDoctrine()->getRepository('AppBundle:User')->find($id);
-        if ($singleresult === null) {
+        $singleResult = $this->getDoctrine()->getRepository('AppBundle:User')->find($id);
+        if ($singleResult === null) {
             return new View("user not found", Response::HTTP_NOT_FOUND);
         }
-        return $singleresult;
+        return $singleResult;
     }
 
     /**
@@ -40,19 +41,27 @@ class UserController extends FOSRestController {
      */
     public function postAction(Request $request)
     {
-        $data = new User;
-        $first_name = $request->get('first_name');
-        $second_name = $request->get('second_name');
+        $user = new User;
+        $firstName = $request->get('first_name');
+        $secondName = $request->get('second_name');
         $email = $request->get('email');
-        if(empty($email))
-        {
-            return new View("NULL VALUES FOR EMAIL ARE NOT ALLOWED", Response::HTTP_NOT_ACCEPTABLE);
+        $user->setFirstName($firstName);
+        $user->setSecondName($secondName);
+        $user->setEmail($email);
+        $userExists = $this->getDoctrine()->getRepository('AppBundle:User')->findOneBy(array("email" => $email));
+        if ($userExists !== null) {
+            return new View("user with such email already exists", Response::HTTP_BAD_REQUEST);
         }
-        $data->setFirstName($first_name);
-        $data->setSecondName($second_name);
-        $data->setEmail($email);
+
+        $validator = $this->get('validator');
+        $errors = $validator->validate($user);
+        if (count($errors) > 0) {
+            $errorsString = (string)$errors;
+            return new View($errorsString, Response::HTTP_BAD_REQUEST);
+        }
+
         $em = $this->getDoctrine()->getManager();
-        $em->persist($data);
+        $em->persist($user);
         $em->flush();
         return new View("User Added Successfully", Response::HTTP_OK);
     }
@@ -60,9 +69,8 @@ class UserController extends FOSRestController {
     /**
      * @Rest\Put("/user/{id}")
      */
-    public function updateAction($id,Request $request)
+    public function updateAction($id, Request $request)
     {
-       // $data = new User;
         $firstName = $request->get('first_name');
         $secondName = $request->get('second_name');
         $email = $request->get('email');
@@ -71,25 +79,29 @@ class UserController extends FOSRestController {
         if (empty($user)) {
             return new View("user not found", Response::HTTP_NOT_FOUND);
         }
-        if(empty($email)) return new View("User email cannot be empty", Response::HTTP_NOT_ACCEPTABLE);
         $user->setFirstName($firstName);
         $user->setSecondName($secondName);
         $user->setEmail($email);
+        $validator = $this->get('validator');
+        $errors = $validator->validate($user);
+        if (count($errors) > 0) {
+            $errorsString = (string)$errors;
+            return new View($errorsString, Response::HTTP_BAD_REQUEST);
+        }
         $sn->flush();
         return new View("User Updated Successfully", Response::HTTP_OK);
     }
+
     /**
      * @Rest\Delete("/user/{id}")
      */
     public function deleteAction($id)
     {
-        $data = new User;
         $sn = $this->getDoctrine()->getManager();
         $user = $this->getDoctrine()->getRepository('AppBundle:User')->find($id);
         if (empty($user)) {
             return new View("user not found", Response::HTTP_NOT_FOUND);
-        }
-        else {
+        } else {
             $sn->remove($user);
             $sn->flush();
         }

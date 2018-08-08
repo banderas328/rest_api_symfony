@@ -3,6 +3,10 @@
 namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
+use Symfony\Component\Validator\Constraints\Email;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 /**
  * User
@@ -25,6 +29,7 @@ class User
      * @var string
      *
      * @ORM\Column(name="email", type="string", length=255, unique=true)
+     *
      */
     private $email;
 
@@ -123,6 +128,25 @@ class User
     public function getSecondName()
     {
         return $this->secondName;
+    }
+
+    public static function loadValidatorMetadata(ClassMetadata $metadata)
+    {
+        $metadata->addPropertyConstraint('email', new Email(array(
+            "message" => "invalid Email"
+        )));
+        $metadata->addPropertyConstraint('firstName', new Assert\Length(array(
+            'min' => 2,
+            'max' => 50,
+            'minMessage' => 'User first name must be at least {{ limit }} characters long',
+            'maxMessage' => 'User first name cannot be longer than {{ limit }} characters',
+        )));
+        $metadata->addPropertyConstraint('firstName', new Assert\Length(array(
+            'min' => 2,
+            'max' => 50,
+            'minMessage' => 'User second name must be at least {{ limit }} characters long',
+            'maxMessage' => 'User second name cannot be longer than {{ limit }} characters',
+        )));
     }
 }
 
