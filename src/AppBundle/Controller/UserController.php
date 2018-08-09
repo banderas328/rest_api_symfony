@@ -42,12 +42,8 @@ class UserController extends FOSRestController
     public function postAction(Request $request)
     {
         $user = new User;
-        $firstName = $request->get('first_name');
-        $secondName = $request->get('second_name');
+        $user->bindRequestParams($request);
         $email = $request->get('email');
-        $user->setFirstName($firstName);
-        $user->setSecondName($secondName);
-        $user->setEmail($email);
         $userExists = $this->getDoctrine()->getRepository('AppBundle:User')->findOneBy(array("email" => $email));
         if ($userExists !== null) {
             return new View("user with such email already exists", Response::HTTP_BAD_REQUEST);
@@ -71,17 +67,13 @@ class UserController extends FOSRestController
      */
     public function updateAction($id, Request $request)
     {
-        $firstName = $request->get('first_name');
-        $secondName = $request->get('second_name');
-        $email = $request->get('email');
+
         $sn = $this->getDoctrine()->getManager();
         $user = $this->getDoctrine()->getRepository('AppBundle:User')->find($id);
         if (empty($user)) {
             return new View("user not found", Response::HTTP_NOT_FOUND);
         }
-        $user->setFirstName($firstName);
-        $user->setSecondName($secondName);
-        $user->setEmail($email);
+        $user->bindRequestParams($request);
         $validator = $this->get('validator');
         $errors = $validator->validate($user);
         if (count($errors) > 0) {

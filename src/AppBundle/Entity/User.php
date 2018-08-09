@@ -3,9 +3,12 @@
 namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints as Assert;
+use AppBundle\Entity\EntityRestPrototype;
+
 
 
 /**
@@ -14,7 +17,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\Table(name="user")
  * @ORM\Entity(repositoryClass="AppBundle\Repository\UserRepository")
  */
-class User
+class User extends EntityRestPrototype
 {
     /**
      * @var int
@@ -147,6 +150,16 @@ class User
             'minMessage' => 'User second name must be at least {{ limit }} characters long',
             'maxMessage' => 'User second name cannot be longer than {{ limit }} characters',
         )));
+    }
+
+    public function bindRequestParams(Request $request)
+    {
+        $firstName = $request->get('first_name');
+        $secondName = $request->get('second_name');
+        $email = $request->get('email');
+        $this->setFirstName($firstName);
+        $this->setSecondName($secondName);
+        $this->setEmail($email);
     }
 }
 
